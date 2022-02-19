@@ -60,4 +60,6 @@ pub fn u128_bytes (u: &u128) -> [u8; 16] {
 }
 
 mod block;
+mod hashable;
 pub use crate::block::Block;
+pub use crate::hashable::Hashable;
