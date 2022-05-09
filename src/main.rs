@@ -1,6 +1,6 @@
 use blockchainlib::*;
 fn main() {
-    let difficulty = 0x000fffffffffffffffffffffffffffff;
+    let difficulty = 0x000000ffffffffffffffffffffffffff;
     let coinbase_reward = 100;
 
     let mut blockchain = Blockchain::new(difficulty, coinbase_reward);
@@ -54,11 +54,11 @@ fn main() {
                 outputs: vec![
                     transaction::Output {
                         to_addr: "Alice".to_owned(),
-                        value: 36,
+                        value: 0,
                     },
                     transaction::Output {
                         to_addr: "Bob".to_owned(),
-                        value: 12,
+                        value: 48,
                     },
                 ],
             }
@@ -119,6 +119,9 @@ fn main() {
     blockchain
         .update_with_block(block2)
         .expect("Failed to add block");
+
+
+    println!("UTXO: {:?}", blockchain.unspent_outputs);
 
     // for i in 1..=10 {
     //     let mut block = Block::new(i, now(), last_hash, 0, "New block".to_owned(), difficulty);

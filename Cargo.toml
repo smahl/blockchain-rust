@@ -4,10 +4,6 @@ version = "0.1.0"
 authors = ["Hans-Christian <smahlhanssen@gmail.com>"]
 edition = "2018"
 
-[[bin]]
-name = "rustfmt"
-path = "src/bin/main.rs"
-
 [lib]
 name = "blockchainlib"
 path = "src/lib.rs"

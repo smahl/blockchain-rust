@@ -48,10 +48,6 @@ impl Transaction {
     pub fn is_coinbase(&self) -> bool {
         self.inputs.len() == 0
     }
-
-    pub fn ouput_lower_than_reward(&self, reward: u64) -> bool {
-        self.output_value() < reward
-    }
 }
 
 impl Hashable for Transaction {

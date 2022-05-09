@@ -1,4 +1,6 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+
+use crate::account_balance::UTXO;
 
 use super::*;
 
@@ -16,9 +18,10 @@ pub enum BlockValidationErr {
 
 pub struct Blockchain {
     pub blocks: Vec<Block>,
-    unspent_outputs: HashSet<Hash>,
+    pub unspent_outputs: HashSet<Hash>,
+    pub unspent_outputs_info: HashMap<Hash, UTXO>,
     difficulty: u128,
-    coinbase_reward: u64
+    coinbase_reward: u64,
 }
 
 impl Blockchain {
@@ -26,6 +29,7 @@ impl Blockchain {
         Blockchain {
             blocks: vec![],
             unspent_outputs: HashSet::new(),
+            unspent_outputs_info: HashMap::new(),
             difficulty,
             coinbase_reward,
         }
@@ -35,7 +39,7 @@ impl Blockchain {
         if block.index != i as u32 {
             println!("Index mistmatch {} != {}", &block.index, &i);
             return Err(BlockValidationErr::MisatchedIndex);
-        } else if !block::check_difficulty(&block.hash(), block.difficulty) {
+        } else if !block::check_difficulty(&block.hash(), self.difficulty) {
             println!("Difficulty failed");
             return Err(BlockValidationErr::InvalidHash);
         } else if i != 0 {
@@ -62,7 +66,7 @@ impl Blockchain {
                 return Err(BlockValidationErr::InvalidCoinbaseTransaction);
             }
             if coinbase.output_value() > self.coinbase_reward {
-                return Err(BlockValidationErr::InvalidCoinbaseTransaction)
+                return Err(BlockValidationErr::InvalidCoinbaseTransaction);
             }
             let mut block_spent: HashSet<Hash> = HashSet::new();
             let mut block_created: HashSet<Hash> = HashSet::new();
@@ -71,10 +75,10 @@ impl Blockchain {
             for transaction in transactions {
                 let input_hashes = transaction.input_hashes();
 
-                let joinInputHashesUnspentOutput = &input_hashes - &self.unspent_outputs;
-                let joinInputHashesBlockSpent =&input_hashes & &block_spent;
-                if !(joinInputHashesUnspentOutput).is_empty()
-                    || !(joinInputHashesBlockSpent).is_empty()
+                let input_hashes_subtract_unspent_output = &input_hashes - &self.unspent_outputs;
+                let join_input_hashes_block_spent = &input_hashes & &block_spent;
+                if !(input_hashes_subtract_unspent_output).is_empty()
+                    || !(join_input_hashes_block_spent).is_empty()
                 {
                     return Err(BlockValidationErr::InvalidInput);
                 }
@@ -101,7 +105,10 @@ impl Blockchain {
 
             self.unspent_outputs
                 .retain(|output| !block_spent.contains(output));
+            self.unspent_outputs_info
+                .retain(|output, _| !block_spent.contains(output));
             self.unspent_outputs.extend(block_created);
+            self.unspent_outputs_info.extend(block_created);
         }
 
         self.blocks.push(block);
